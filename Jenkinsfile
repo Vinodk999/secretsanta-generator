@@ -8,13 +8,6 @@ pipeline {
         SCANNER_HOME= tool 'sonar-scanner'
     }
 
-    stages {
-        stage('git-checkout') {
-            steps {
-                git 'https://github.com/jaiswaladi246/secretsanta-generator.git'
-            }
-        }
-
         stage('Code-Compile') {
             steps {
                sh "mvn clean compile"
@@ -26,18 +19,11 @@ pipeline {
                sh "mvn test"
             }
         }
-        
-		stage('OWASP Dependency Check') {
-            steps {
-               dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DC'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-            }
-        }
 
 
         stage('Sonar Analysis') {
             steps {
-               withSonarQubeEnv('sonar'){
+               withSonarQubeEnv('sonar-scanner'){
                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Santa \
                    -Dsonar.java.binaries=. \
                    -Dsonar.projectKey=Santa '''
@@ -66,19 +52,13 @@ pipeline {
             steps {
                script{
                    withDockerRegistry(credentialsId: 'docker-cred') {
-                    sh "docker tag santa123 adijaiswal/santa123:latest"
-                    sh "docker push adijaiswal/santa123:latest"
+                    sh "docker tag santa123 vinodk99/santa123:latest"
+                    sh "docker push vinodk99/santa123:latest"
                  }
                }
             }
         }
-        
-        	 
-        stage('Docker Image Scan') {
-            steps {
-               sh "trivy image adijaiswal/santa123:latest "
-            }
-        }}
+}
         
          post {
             always {
@@ -91,15 +71,11 @@ pipeline {
                                     <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
                                 </body>
                             </html>''',
-                    to: 'jaiswaladi246@gmail.com',
+                    to: 'kumarkvinod723@gmail.com',
                     from: 'jenkins@example.com',
                     replyTo: 'jenkins@example.com',
                     mimeType: 'text/html'
                 )
             }
         }
-		
-		
-
-    
 }
